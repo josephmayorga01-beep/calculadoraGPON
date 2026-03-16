@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora GPON + EDFA 23dBm</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 550px; margin: 20px auto; padding: 20px; background: #f0f2f5; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; margin-top: 0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        label { display: block; font-size: 0.8em; font-weight: bold; color: #555; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 15px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; margin-top: 10px; }
+        button:hover { background: #1557b0; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; border: 2px solid transparent; }
+        .ok { background: #e6f4ea; color: #1e8e3e; border-color: #34a853; }
+        .warn { background: #fef7e0; color: #f9ab00; border-color: #fabb05; } /* Saturación o señal baja */
+        .error { background: #fce8e6; color: #d93025; border-color: #ea4335; }
+        .detalles { font-size: 0.85em; color: #666; margin-top: 10px; text-align: left; border-top: 1px solid #eee; padding-top: 10px; }
+        canvas { background: #fff; margin-top: 15px; border: 1px solid #ddd; width: 100%; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Calculadora GPON / EDFA</h2>
+        
+        <label>Tipo de Fuente / Longitud de Onda:</label>
+        <select id="lambda" onchange="actualizarFuente()">
+            <option value="0.35" data-p="3">1490 nm (Datos OLT @ +3 dBm)</option>
+            <option value="0.22" data-p="17">1550 nm (EDFA Estándar @ +17 dBm)</option>
+            <option value="0.22" data-p="23">1550 nm (EDFA Alta Potencia @ +23 dBm)</option>
+        </select>
+
+        <div class="grid">
+            <div>
+                <label>Potencia Salida (dBm):</label>
+                <input type="number" id="potencia" value="3" step="0.5">
+            </div>
+            <div>
+                <label>Distancia (km):</label>
+                <input type="number" id="distancia" value="4" step="0.1">
+            </div>
+        </div>
+
+        <div class="grid">
+            <div>
+                <label>Splitter 1 (Nivel 1):</label>
+                <select id="s1">
+                    <option value="3.5" data-n="2">1:2</option>
+                    <option value="7.2" data-n="4">1:4</option>
+                    <option value="10.5" data-n="8" selected>1:8</option>
+                    <option value="13.8" data-n="16">1:16</option>
+                </select>
+            </div>
+            <div>
+                <label>Splitter 2 (NAP):</label>
+                <select id="s2">
+                    <option value="7.2">1:4</option>
+                    <option value="10.5" selected>1:8</option>
+                    <option value="13.8">1:16</option>
+                </select>
+            </div>
+        </div>
+
+        <button onclick="calcular()">CALCULAR RED</button>
+
+        <div id="resultado" class="result" style="display:none;">
+            POTENCIA RECIBIDA: <span id="val">--</span> dBm
+            <div id="msg"></div>
+            <div class="detalles" id="detalles"></div>
+        </div>
+
+        <canvas id="canvas" width="400" height="180" style="display:none;"></canvas>
+    </div>
+
+<script>
+    function actualizarFuente() {
+        const sel = document.getElementById('lambda');
+        document.getElementById('potencia').value = sel.options[sel.selectedIndex].getAttribute('data-p');
+    }
+
+    function calcular() {
+        const lam = parseFloat(document.getElementById('lambda').value);
+        const pwr = parseFloat(document.getElementById('potencia').value);
+        const dist = parseFloat(document.getElementById('distancia').value);
+        const s1 = parseFloat(document.getElementById('s1').value);
+        const s2 = parseFloat(document.getElementById('s2').value);
+        
+        // Pérdidas adicionales fijas
+        const perd_km = dist * lam;
+        const perd_pasivos = (5 * 0.3) + (8 * 0.1); // 5 conectores y 8 empalmes aprox
+        const margen = 2.0;
+        
+        const perd_total = perd_km + perd_pasivos + s1 + s2 + margen;
+        const rx = pwr - perd_total;
+
+        const resDiv = document.getElementById('resultado');
+        const msg = document.getElementById('msg');
+        resDiv.style.display = "block";
+        document.getElementById('val').innerText = rx.toFixed(2);
+
+        // LÓGICA DE VALIDACIÓN PARA EDFA 1550nm vs DATOS 1490nm
+        if (lam === 0.22) { // CATV
+            if (rx > 2) {
+                resDiv.className = "result warn";
+                msg.innerText = "⚠ PELIGRO: SATURACIÓN (Usar atenuador)";
+            } else if (rx >= -8 && rx <= 2) {
+                resDiv.className = "result ok";
+                msg.innerText = "✓ SEÑAL CATV PERFECTA";
+            } else {
+                resDiv.className = "result error";
+                msg.innerText = "❌ SEÑAL MUY DÉBIL PARA VIDEO";
+            }
+        } else { // DATOS
+            if (rx >= -27 && rx <= -8) {
+                resDiv.className = "result ok";
+                msg.innerText = "✓ SEÑAL DATOS ÓPTIMA";
+            } else {
+                resDiv.className = "result error";
+                msg.innerText = "❌ FUERA DE RANGO GPON";
+            }
+        }
+
+        document.getElementById('detalles').innerHTML = `
+            <b>Desglose:</b><br>
+            • Atenuación Fibra: ${perd_km.toFixed(2)} dB<br>
+            • Atenuación Splitters: ${(s1+s2).toFixed(2)} dB<br>
+            • Pasivos + Margen: ${(perd_pasivos + margen).toFixed(2)} dB
+        `;
+        dibujar();
+    }
+
+    function dibujar() {
+        const can = document.getElementById('canvas');
+        can.style.display = "block";
+        const ctx = can.getContext('2d');
+        const naps = parseInt(document.getElementById('s1').options[document.getElementById('s1').selectedIndex].getAttribute('data-n'));
+        
+        ctx.clearRect(0,0,400,180);
+        // Dibujo simple
+        ctx.fillStyle = "#1a73e8"; ctx.fillRect(10, 80, 40, 30); // Fuente
+        ctx.fillStyle = "#fabb05"; ctx.beginPath(); ctx.arc(100, 95, 10, 0, 7); ctx.fill(); // Splitter 1
+        
+        for(let i=0; i<naps; i++) {
+            ctx.beginPath(); ctx.moveTo(110, 95);
+            ctx.lineTo(320, 20 + (i * (140/(naps-1)))); ctx.strokeStyle = "#ddd"; ctx.stroke();
+            ctx.fillStyle = "#ea4335"; ctx.fillRect(320, 15 + (i * (140/(naps-1))), 15, 10); // NAPs
+        }
+    }
+</script>
+</body>
+</html>
+
