@@ -2,126 +2,79 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora GPON/EDFA Profesional</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; background: #f0f2f5; color: #333; }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a73e8; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 650px; margin: 10px auto; padding: 15px; background: #f0f2f5; color: #333; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; font-size: 1.4em; }
         
-        /* Estilos de la Tabla de Referencia */
-        .tabla-referencia { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 0.85em; background: #fafafa; }
-        .tabla-referencia th { background: #1a73e8; color: white; padding: 8px; text-align: left; }
-        .tabla-referencia td { border: 1px solid #ddd; padding: 8px; }
-        .titulo-seccion { font-size: 0.9em; font-weight: bold; margin-bottom: 10px; color: #555; border-bottom: 2px solid #1a73e8; display: inline-block; }
+        .tabla-referencia { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 0.75em; }
+        .tabla-referencia th { background: #1a73e8; color: white; padding: 6px; }
+        .tabla-referencia td { border: 1px solid #ddd; padding: 6px; text-align: center; }
 
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
-        label { display: block; font-size: 0.8em; font-weight: bold; color: #555; margin-bottom: 5px; }
-        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 15px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
-        button:hover { background: #1557b0; transform: translateY(-2px); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        label { display: block; font-size: 0.75em; font-weight: bold; color: #555; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
         
-        .result { margin-top: 20px; padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; }
-        .ok { background: #e6f4ea; color: #1e8e3e; border: 2px solid #34a853; }
-        .warn { background: #fef7e0; color: #f9ab00; border: 2px solid #fabb05; }
-        .error { background: #fce8e6; color: #d93025; border: 2px solid #ea4335; }
-        canvas { background: #fff; margin-top: 20px; border: 1px solid #ddd; width: 100%; border-radius: 8px; }
+        button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        
+        .result { margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center; font-weight: bold; display: none; }
+        .ok { background: #e6f4ea; color: #1e8e3e; border: 1px solid #34a853; }
+        .warn { background: #fef7e0; color: #f9ab00; border: 1px solid #fabb05; }
+        .error { background: #fce8e6; color: #d93025; border: 1px solid #ea4335; }
+
+        /* Contenedor para que el gráfico no se corte */
+        .canvas-wrapper { width: 100%; overflow-x: auto; margin-top: 20px; background: white; border-radius: 8px; border: 1px solid #ddd; }
+        canvas { display: block; margin: 0 auto; min-width: 400px; height: 250px; }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <h2>Calculadora de Red Óptica</h2>
+    <h2>Calculadora Óptica Responsiva</h2>
 
-    <!-- TABLA DE REFERENCIA VISUAL -->
-    <div class="titulo-seccion">ESTÁNDARES DE PÉRDIDA (dB)</div>
     <table class="tabla-referencia">
-        <thead>
-            <tr>
-                <th>Elemento</th>
-                <th>Pérdida Típica</th>
-                <th>Elemento</th>
-                <th>Pérdida Típica</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>Fibra (1490nm)</td>
-                <td>0.35 dB/km</td>
-                <td>Splitter 1:2</td>
-                <td>3.5 dB</td>
-            </tr>
-            <tr>
-                <td>Fibra (1550nm)</td>
-                <td>0.22 dB/km</td>
-                <td>Splitter 1:4</td>
-                <td>7.2 dB</td>
-            </tr>
-            <tr>
-                <td>Conector SC/APC</td>
-                <td>0.30 dB</td>
-                <td>Splitter 1:8</td>
-                <td>10.5 dB</td>
-            </tr>
-            <tr>
-                <td>Empalme Fusión</td>
-                <td>0.10 dB</td>
-                <td>Splitter 1:16</td>
-                <td>13.8 dB</td>
-            </tr>
-        </tbody>
+        <tr><th>Elemento</th><th>Pérdida</th><th>Elemento</th><th>Pérdida</th></tr>
+        <tr><td>Fibra 1490</td><td>0.35/km</td><td>Splitter 1:8</td><td>10.5 dB</td></tr>
+        <tr><td>Fibra 1550</td><td>0.22/km</td><td>Splitter 1:16</td><td>13.8 dB</td></tr>
     </table>
 
-    <!-- FORMULARIO DE ENTRADA -->
-    <div class="titulo-seccion">CONFIGURACIÓN DE ENLACE</div>
     <div class="grid">
         <div>
-            <label>Tecnología / λ:</label>
+            <label>Tecnología:</label>
             <select id="lambda" onchange="cambioFuente()">
                 <option value="0.35" data-p="3">GPON (1490nm)</option>
-                <option value="0.22" data-p="17">CATV (1550nm) Std</option>
-                <option value="0.22" data-p="23">CATV (1550nm) High</option>
+                <option value="0.22" data-p="17">CATV (1550nm) +17</option>
+                <option value="0.22" data-p="23">EDFA (1550nm) +23</option>
             </select>
         </div>
-        <div>
-            <label>Potencia Salida (dBm):</label>
-            <input type="number" id="potencia" value="3" step="0.5">
-        </div>
+        <div><label>Potencia (dBm):</label><input type="number" id="potencia" value="3" step="0.5"></div>
     </div>
 
     <div class="grid">
+        <div><label>Distancia (km):</label><input type="number" id="distancia" value="5" step="0.1"></div>
         <div>
-            <label>Distancia Total (km):</label>
-            <input type="number" id="distancia" value="5" step="0.1">
-        </div>
-        <div>
-            <label>Splitter 1er Nivel:</label>
+            <label>Splitter 1:</label>
             <select id="s1">
                 <option value="3.5" data-n="2">1:2</option>
                 <option value="7.2" data-n="4">1:4</option>
                 <option value="10.5" selected data-n="8">1:8</option>
+                <option value="13.8" data-n="16">1:16</option>
             </select>
         </div>
     </div>
 
-    <div class="grid">
-        <div>
-            <label>Nº Conectores:</label>
-            <input type="number" id="con" value="6">
-        </div>
-        <div>
-            <label>Nº Empalmes:</label>
-            <input type="number" id="fus" value="10">
-        </div>
+    <button onclick="calcular()">CALCULAR Y VER GRÁFICO</button>
+
+    <div id="resultado" class="result">
+        POTENCIA RECIBIDA: <span id="val">--</span> dBm
+        <div id="msg" style="font-size: 0.8em; margin-top:5px;"></div>
     </div>
 
-    <button onclick="calcular()">EJECUTAR CÁLCULO</button>
-
-    <div id="resultado" class="result" style="display:none;">
-        POTENCIA EN ONT: <span id="val">--</span> dBm
-        <div id="msg" style="font-size: 0.9em; margin-top:5px;"></div>
+    <div class="canvas-wrapper">
+        <canvas id="canvas" width="500" height="250"></canvas>
     </div>
-
-    <canvas id="canvas" width="400" height="150" style="display:none;"></canvas>
 </div>
 
 <script>
@@ -135,39 +88,51 @@
         const pwr = parseFloat(document.getElementById('potencia').value);
         const dist = parseFloat(document.getElementById('distancia').value);
         const s1 = parseFloat(document.getElementById('s1').value);
-        const nCon = parseInt(document.getElementById('con').value);
-        const nFus = parseInt(document.getElementById('fus').value);
         
-        // El cálculo asume un 2do nivel fijo de 1:8 (NAP) para este ejemplo
-        const s2 = 10.5; 
-        const perd_total = (dist * lam) + (nCon * 0.3) + (nFus * 0.1) + s1 + s2 + 2.0;
+        const perd_total = (dist * lam) + (6 * 0.3) + (10 * 0.1) + s1 + 10.5 + 2.0;
         const rx = pwr - perd_total;
 
         const resDiv = document.getElementById('resultado');
         resDiv.style.display = "block";
         document.getElementById('val').innerText = rx.toFixed(2);
 
-        // Validación
-        if (lam === 0.22) { // 1550nm
-            if (rx > 2) { resDiv.className = "result warn"; document.getElementById('msg').innerText = "⚠ SATURACIÓN ÓPTICA"; }
-            else if (rx >= -8) { resDiv.className = "result ok"; document.getElementById('msg').innerText = "✓ SEÑAL CATV ÓPTIMA"; }
-            else { resDiv.className = "result error"; document.getElementById('msg').innerText = "❌ SEÑAL CATV INSUFICIENTE"; }
-        } else { // 1490nm
-            if (rx >= -27 && rx <= -8) { resDiv.className = "result ok"; document.getElementById('msg').innerText = "✓ SEÑAL GPON ÓPTIMA"; }
-            else { resDiv.className = "result error"; document.getElementById('msg').innerText = "❌ FUERA DE RANGO GPON"; }
+        if (lam === 0.22) {
+            if (rx > 2) { resDiv.className = "result warn"; document.getElementById('msg').innerText = "⚠ SATURACIÓN"; }
+            else if (rx >= -8) { resDiv.className = "result ok"; document.getElementById('msg').innerText = "✓ CATV OK"; }
+            else { resDiv.className = "result error"; document.getElementById('msg').innerText = "❌ SEÑAL BAJA"; }
+        } else {
+            if (rx >= -27 && rx <= -8) { resDiv.className = "result ok"; document.getElementById('msg').innerText = "✓ GPON OK"; }
+            else { resDiv.className = "result error"; document.getElementById('msg').innerText = "❌ FUERA DE RANGO"; }
         }
         dibujar();
     }
 
     function dibujar() {
         const can = document.getElementById('canvas');
-        can.style.display = "block";
         const ctx = can.getContext('2d');
-        ctx.clearRect(0,0,400,150);
-        ctx.fillStyle = "#1a73e8"; ctx.fillRect(20, 60, 40, 30); // OLT
-        ctx.beginPath(); ctx.moveTo(60, 75); ctx.lineTo(350, 75); ctx.strokeStyle = "#ccc"; ctx.stroke(); // Troncal
-        ctx.fillStyle = "#ea4335"; ctx.arc(150, 75, 8, 0, 7); ctx.fill(); // Splitter
-        ctx.font = "10px Arial"; ctx.fillStyle = "#333"; ctx.fillText("OLT/EDFA", 15, 105);
+        const naps = parseInt(document.getElementById('s1').options[document.getElementById('s1').selectedIndex].getAttribute('data-n'));
+        
+        ctx.clearRect(0,0,500,250);
+        
+        // 1. Dibujar Fuente
+        ctx.fillStyle = "#1a73e8"; ctx.fillRect(20, 110, 50, 30);
+        ctx.fillStyle = "white"; ctx.font = "bold 10px Arial"; ctx.fillText("OLT", 35, 130);
+
+        // 2. Dibujar Splitter Central
+        ctx.fillStyle = "#fabb05"; ctx.beginPath(); ctx.arc(150, 125, 12, 0, 7); ctx.fill();
+        ctx.strokeStyle = "#333"; ctx.stroke();
+        
+        // 3. Línea Troncal
+        ctx.beginPath(); ctx.moveTo(70, 125); ctx.lineTo(138, 125); ctx.strokeStyle = "#666"; ctx.stroke();
+
+        // 4. Dibujar NAPs y Líneas
+        for(let i=0; i<naps; i++) {
+            const yPos = 30 + (i * (190 / (naps - 1 || 1)));
+            ctx.beginPath(); ctx.moveTo(162, 125); ctx.lineTo(400, yPos); ctx.strokeStyle = "#bbb"; ctx.stroke();
+            
+            ctx.fillStyle = "#ea4335"; ctx.fillRect(400, yPos - 8, 20, 16);
+            ctx.fillStyle = "#333"; ctx.font = "9px Arial"; ctx.fillText("NAP " + (i+1), 425, yPos + 4);
+        }
     }
 </script>
 </body>
